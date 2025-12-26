@@ -1,16 +1,31 @@
-import { icons } from "@/constants/icons";
-import { View, Text, Image } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import Profile from "@/components/Profile";
 
-const Profile = () => {
+const ProfilePage = () => {
   return (
-    <SafeAreaView className="bg-primary flex-1 px-10">
-      <View className="flex justify-center items-center flex-1 flex-col gap-5">
-        <Image source={icons.person} className="size-10" tintColor="#fff" />
-        <Text className="text-gray-500 text-base">Profile</Text>
-      </View>
-    </SafeAreaView>
+    <Profile
+      name="Alex Smith"
+      email="alex.smith@gmail.com"
+      avatarInitials="AS"
+      followers={1247}
+      following={89}
+      onEditProfile={() => {
+        // Handle edit profile
+        console.log("Edit profile clicked");
+      }}
+      onSettings={() => {
+        // Handle settings
+        console.log("Settings clicked");
+      }}
+      onTicketPress={(id) => {
+        // Handle ticket press
+        console.log("Ticket pressed:", id);
+      }}
+      onAddMore={() => {
+        // Handle add more
+        console.log("Add more clicked");
+      }}
+    />
   );
 };
 
-export default Profile;
+export default ProfilePage;

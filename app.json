@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "rn-movie-app",
-    "slug": "rn-movie-app",
+    "name": "rush-mobile",
+    "slug": "rush-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",

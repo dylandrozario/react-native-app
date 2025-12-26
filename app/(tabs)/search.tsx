@@ -1,120 +1,180 @@
-import { useState, useEffect } from "react";
-import { View, Text, ActivityIndicator, FlatList, Image } from "react-native";
-
-import { images } from "@/constants/images";
-import { icons } from "@/constants/icons";
-
-import useFetch from "@/services/usefetch";
-import { fetchMovies } from "@/services/api";
-import { updateSearchCount } from "@/services/appwrite";
+import { useState } from "react";
+import { View, Text, ScrollView } from "react-native";
 
 import SearchBar from "@/components/SearchBar";
-import MovieDisplayCard from "@/components/MovieCard";
+import FilterButtons from "@/components/FilterButtons";
+import LocationButton from "@/components/LocationButton";
+import EventTypeButton from "@/components/EventTypeButton";
+import SearchBarEventCard from "@/components/SearchBarEventCard";
+
 
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState<string | undefined>();
+  const [selectedEventType, setSelectedEventType] = useState<string | undefined>();
 
-  const {
-    data: movies = [],
-    loading,
-    error,
-    refetch: loadMovies,
-    reset,
-  } = useFetch(() => fetchMovies({ query: searchQuery }), false);
+  const eventTypes = [
+    "Club",
+    "DJ",
+    "Bar ",
+    "Lounge",
+    "Live Music",
+    "Rooftop",
+    "Themed Party",
+  ];
+
+  // Mock event data for SearchBarEventCard
+  const searchEvents = [
+    {
+      id: 1,
+      imageUri: "https://placehold.co/400x600/000000/FFFFFF.png",
+      title: "Coldplay",
+      subtitle: "Music of the Spheres",
+      venue: "HBF Stadium",
+      address: "100 Stephenson Ave, Mount Claremont WA 6010",
+      price: "From $175.00",
+      date: "2024-12-12",
+      time: "20:00 PM",
+    },
+    {
+      id: 2,
+      imageUri: "https://placehold.co/400x600/F5F5DC/000000.png",
+      title: "Beyonce",
+      subtitle: "Renaissance World Tour",
+      venue: "Accor Arena",
+      address: "Paris, France",
+      price: "From $560",
+      date: "2024-10-12",
+      time: "7:00 PM",
+    },
+    {
+      id: 3,
+      imageUri: "https://placehold.co/400x600/1a1a1a/FFFFFF.png",
+      title: "Billie Eilish",
+      subtitle: "Happier Than Ever",
+      venue: "Madison Square Garden",
+      address: "New York, NY",
+      price: "From $450",
+      date: "2024-10-15",
+      time: "8:00 PM",
+    },
+  ];
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
   };
 
-  // Debounced search effect
-  useEffect(() => {
-    const timeoutId = setTimeout(async () => {
-      if (searchQuery.trim()) {
-        await loadMovies();
-
-        // Call updateSearchCount only if there are results
-        if (movies?.length! > 0 && movies?.[0]) {
-          await updateSearchCount(searchQuery, movies[0]);
-        }
-      } else {
-        reset();
-      }
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  // Mock search results - replace with actual event API later
+  const searchResults = searchQuery.trim()
+    ? searchEvents.filter(
+        (event) =>
+          event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          event.venue.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (event.subtitle && event.subtitle.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    : [];
 
   return (
     <View className="flex-1 bg-primary">
-      <Image
-        source={images.bg}
-        className="flex-1 absolute w-full z-0"
-        resizeMode="cover"
-      />
-
-      <FlatList
-        className="px-5"
-        data={movies as Movie[]}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <MovieDisplayCard {...item} />}
-        numColumns={3}
-        columnWrapperStyle={{
-          justifyContent: "flex-start",
-          gap: 16,
-          marginVertical: 16,
-        }}
+      <ScrollView
+        className="px-3"
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
-        ListHeaderComponent={
-          <>
-            <View className="w-full flex-row justify-center mt-20 items-center">
-              <Image source={icons.logo} className="w-12 h-10" />
-            </View>
+      >
+        {/* Header Section */}
+        <View className="px-3 pt-20 pb-5">
+          {/* Search Bar */}
+          <View className="mb-4">
+            <SearchBar
+              placeholder="Search for an event, artist or venue"
+              value={searchQuery}
+              onChangeText={handleSearch}
+            />
+          </View>
 
-            <View className="my-5">
-              <SearchBar
-                placeholder="Search for a movie"
-                value={searchQuery}
-                onChangeText={handleSearch}
+          {/* Filter Buttons: Price, Date, Location */}
+          <View className="flex-row items-center gap-2 mb-8">
+            <FilterButtons
+              items={["Price", "Date"]}
+              selectedItem={selectedFilter}
+              onItemSelect={(item) => setSelectedFilter(selectedFilter === item ? undefined : item)}
+            />
+            <LocationButton
+              location="NEW YORK CITY"
+              onPress={() => {
+                // Handle location button press
+              }}
+            />
+          </View>
+
+          {/* Event Type Buttons - Horizontal Scroll */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="mb-5"
+            contentContainerStyle={{ gap: 12, paddingRight: 20 }}
+          >
+            {eventTypes.map((type) => (
+              <EventTypeButton
+                key={type}
+                label={type}
+                isSelected={selectedEventType === type}
+                onPress={() => setSelectedEventType(selectedEventType === type ? undefined : type)}
               />
-            </View>
+            ))}
+          </ScrollView>
 
-            {loading && (
-              <ActivityIndicator
-                size="large"
-                color="#0000ff"
-                className="my-3"
-              />
-            )}
-
-            {error && (
-              <Text className="text-red-500 px-5 my-3">
-                Error: {error.message}
+          {/* Search Results or Popular Events */}
+          {searchQuery.trim() ? (
+            <View className="mt-10">
+              <Text className="text-white text-xl font-bold mb-4">
+                Search Results for{" "}
+                <Text className="text-accent">{searchQuery}</Text>
               </Text>
-            )}
-
-            {!loading &&
-              !error &&
-              searchQuery.trim() &&
-              movies?.length! > 0 && (
-                <Text className="text-xl text-white font-bold">
-                  Search Results for{" "}
-                  <Text className="text-accent">{searchQuery}</Text>
-                </Text>
+              {searchResults.length > 0 ? (
+                searchResults.map((event) => (
+                  <SearchBarEventCard
+                    key={event.id}
+                    id={event.id}
+                    imageUri={event.imageUri}
+                    title={event.title}
+                    subtitle={event.subtitle}
+                    venue={event.venue}
+                    address={event.address}
+                    price={event.price}
+                    date={event.date}
+                    time={event.time}
+                  />
+                ))
+              ) : (
+                <View className="mt-10">
+                  <Text className="text-center text-gray-500">
+                    No events found
+                  </Text>
+                </View>
               )}
-          </>
-        }
-        ListEmptyComponent={
-          !loading && !error ? (
-            <View className="mt-10 px-5">
-              <Text className="text-center text-gray-500">
-                {searchQuery.trim()
-                  ? "No movies found"
-                  : "Start typing to search for movies"}
-              </Text>
             </View>
-          ) : null
-        }
-      />
+          ) : (
+            <View className="mt-10">
+              <Text className="text-white text-xl font-bold mb-4">Popular on Rush</Text>
+              {searchEvents.map((event) => (
+                <SearchBarEventCard
+                  key={event.id}
+                  id={event.id}
+                  imageUri={event.imageUri}
+                  title={event.title}
+                  subtitle={event.subtitle}
+                  venue={event.venue}
+                  address={event.address}
+                  price={event.price}
+                  date={event.date}
+                  time={event.time}
+                />
+              ))}
+            </View>
+          )}
+        </View>
+      </ScrollView>
     </View>
   );
 };

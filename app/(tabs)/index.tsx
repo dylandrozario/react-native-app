@@ -1,38 +1,90 @@
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  ScrollView,
-  Image,
-  FlatList,
-} from "react-native";
+import { View, ScrollView, Image, FlatList } from "react-native";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 
-import useFetch from "@/services/usefetch";
-import { fetchMovies } from "@/services/api";
-import { getTrendingMovies } from "@/services/appwrite";
-
-import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
 
 import SearchBar from "@/components/SearchBar";
-import MovieCard from "@/components/MovieCard";
-import TrendingCard from "@/components/TrendingCard";
+import LocationSelector from "@/components/LocationSelector";
+import FilterButtons from "@/components/FilterButtons";
+import PriceSlider from "@/components/PriceSlider";
+import DateCalendar from "@/components/DateCalendar";
+import EventCard from "@/components/EventCard";
 
 const Index = () => {
   const router = useRouter();
+  const [selectedFilter, setSelectedFilter] = useState<string | undefined>();
+  const [showPriceSlider, setShowPriceSlider] = useState(false);
+  const [showDateCalendar, setShowDateCalendar] = useState(false);
 
-  const {
-    data: trendingMovies,
-    loading: trendingLoading,
-    error: trendingError,
-  } = useFetch(getTrendingMovies);
+  const handleFilterSelect = (filter: string) => {
+    // Toggle filters: if clicking the same filter when already selected, deselect it
+    if (filter === selectedFilter) {
+      setSelectedFilter(undefined);
+      setShowPriceSlider(false);
+      setShowDateCalendar(false);
+    } else {
+      setSelectedFilter(filter);
+      // Show/hide components based on filter
+      if (filter === "Price") {
+        setShowPriceSlider(true);
+        setShowDateCalendar(false);
+      } else if (filter === "Date") {
+        setShowDateCalendar(true);
+        setShowPriceSlider(false);
+      }
+    }
+  };
 
-  const {
-    data: movies,
-    loading: moviesLoading,
-    error: moviesError,
-  } = useFetch(() => fetchMovies({ query: "" }));
+  const filters = ["Price", "Date"];
+
+  // Mock event data - replace with actual API data later
+  const events = [
+    {
+      id: 1,
+      imageUri: "https://placehold.co/400x600/000000/FFFFFF.png",
+      title: "Coldplay",
+      subtitle: "Music of the Spheres",
+      venue: "HBF Stadium",
+      address: "100 Stephenson Ave, Mount Claremont WA 6010",
+      price: "From $175.00",
+      date: "2024-12-12",
+      time: "20:00 PM",
+    },
+    {
+      id: 2,
+      imageUri: "https://placehold.co/400x600/F5F5DC/000000.png",
+      title: "Beyonce",
+      subtitle: "Renaissance World Tour",
+      venue: "Accor Arena",
+      address: "Paris, France",
+      price: "From $560",
+      date: "2024-10-12",
+      time: "7:00 PM",
+    },
+    {
+      id: 3,
+      imageUri: "https://placehold.co/400x600/1a1a1a/FFFFFF.png",
+      title: "Billie Eilish",
+      subtitle: "Happier Than Ever",
+      venue: "Madison Square Garden",
+      address: "New York, NY",
+      price: "From $450",
+      date: "2024-10-15",
+      time: "8:00 PM",
+    },
+    {
+      id: 4,
+      imageUri: "https://placehold.co/400x600/2a2a2a/FFFFFF.png",
+      title: "Taylor Swift",
+      subtitle: "The Eras Tour",
+      venue: "Staples Center",
+      address: "Los Angeles, CA",
+      price: "From $380",
+      date: "2024-10-20",
+      time: "7:30 PM",
+    },
+  ];
 
   return (
     <View className="flex-1 bg-primary">
@@ -47,69 +99,54 @@ const Index = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ minHeight: "100%", paddingBottom: 10 }}
       >
-        <Image source={icons.logo} className="w-12 h-10 mt-20 mb-5 mx-auto" />
+        {/* Location Selector */}
+        <View className="mt-14 mb-4">
+          <LocationSelector />
+        </View>
 
-        {moviesLoading || trendingLoading ? (
-          <ActivityIndicator
-            size="large"
-            color="#0000ff"
-            className="mt-10 self-center"
+        {/* Search Bar */}
+        <View className="mb-4">
+          <SearchBar
+            location="New York City"
+            onPress={() => {
+              router.push("/search");
+            }}
           />
-        ) : moviesError || trendingError ? (
-          <Text>Error: {moviesError?.message || trendingError?.message}</Text>
-        ) : (
-          <View className="flex-1 mt-5">
-            <SearchBar
-              onPress={() => {
-                router.push("/search");
-              }}
-              placeholder="Search for a movie"
+        </View>
+
+        {/* Price and Date Filter Buttons */}
+        <View className="mb-5">
+            <FilterButtons
+            items={filters}
+            selectedItem={selectedFilter}
+            onItemSelect={handleFilterSelect}
+          />
+        </View>
+
+        {/* Price Slider - Only shown when Price filter is selected */}
+        {selectedFilter === "Price" && showPriceSlider && <PriceSlider />}
+
+        {/* Date Calendar - Only shown when Date filter is selected */}
+        {selectedFilter === "Date" && showDateCalendar && <DateCalendar />}
+
+        {/* Event Cards - Vertical Scroll */}
+        <View className="mt-5">
+          {events.map((event) => (
+            <EventCard
+              key={event.id}
+              id={event.id}
+              imageUri={event.imageUri}
+              title={event.title}
+              subtitle={event.subtitle}
+              venue={event.venue}
+              address={event.address}
+              price={event.price}
+              date={event.date}
+              time={event.time}
             />
-
-            {trendingMovies && (
-              <View className="mt-10">
-                <Text className="text-lg text-white font-bold mb-3">
-                  Trending Movies
-                </Text>
-                <FlatList
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  className="mb-4 mt-3"
-                  data={trendingMovies}
-                  contentContainerStyle={{
-                    gap: 26,
-                  }}
-                  renderItem={({ item, index }) => (
-                    <TrendingCard movie={item} index={index} />
-                  )}
-                  keyExtractor={(item) => item.movie_id.toString()}
-                  ItemSeparatorComponent={() => <View className="w-4" />}
-                />
-              </View>
-            )}
-
-            <>
-              <Text className="text-lg text-white font-bold mt-5 mb-3">
-                Latest Movies
-              </Text>
-
-              <FlatList
-                data={movies}
-                renderItem={({ item }) => <MovieCard {...item} />}
-                keyExtractor={(item) => item.id.toString()}
-                numColumns={3}
-                columnWrapperStyle={{
-                  justifyContent: "flex-start",
-                  gap: 20,
-                  paddingRight: 5,
-                  marginBottom: 10,
-                }}
-                className="mt-2 pb-32"
-                scrollEnabled={false}
-              />
-            </>
-          </View>
-        )}
+          ))}
+          <View className="h-20" />
+        </View>
       </ScrollView>
     </View>
   );

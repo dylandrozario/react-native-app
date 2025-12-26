@@ -1,29 +1,24 @@
 import { Tabs } from "expo-router";
-import { ImageBackground, Image, Text, View } from "react-native";
+import { View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
-import { icons } from "@/constants/icons";
-import { images } from "@/constants/images";
-
-function TabIcon({ focused, icon, title }: any) {
+function TabIcon({ focused, iconName }: { focused: boolean; iconName: keyof typeof Ionicons.glyphMap }) {
   if (focused) {
     return (
-      <ImageBackground
-        source={images.highlight}
-        className="flex flex-row w-full flex-1 min-w-[112px] min-h-14 mt-4 justify-center items-center rounded-full overflow-hidden"
+      <View 
+        className="rounded-full items-center justify-center"
+        style={{ 
+          width: 40, 
+          height: 40, 
+          backgroundColor: "#0F0D23" 
+        }}
       >
-        <Image source={icon} tintColor="#151312" className="size-5" />
-        <Text className="text-secondary text-base font-semibold ml-2">
-          {title}
-        </Text>
-      </ImageBackground>
+        <Ionicons name={iconName} size={22} color="#FFFFFF" />
+      </View>
     );
   }
 
-  return (
-    <View className="size-full justify-center items-center mt-4 rounded-full">
-      <Image source={icon} tintColor="#A8B5DB" className="size-5" />
-    </View>
-  );
+  return <Ionicons name={iconName} size={22} color="#FFFFFF" />;
 }
 
 export default function TabsLayout() {
@@ -31,32 +26,28 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         tabBarShowLabel: false,
+        tabBarStyle: {
+          backgroundColor: "#221F3D",
+          borderTopWidth: 0,
+          height: 70,
+          paddingBottom: 10,
+          paddingTop: 10,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
         tabBarItemStyle: {
-          width: "100%",
-          height: "100%",
           justifyContent: "center",
           alignItems: "center",
-        },
-        tabBarStyle: {
-          backgroundColor: "#0F0D23",
-          borderRadius: 50,
-          marginHorizontal: 20,
-          marginBottom: 36,
-          height: 52,
-          position: "absolute",
-          overflow: "hidden",
-          borderWidth: 1,
-          borderColor: "#0F0D23",
         },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: "index",
+          title: "Home",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.home} title="Home" />
+            <TabIcon focused={focused} iconName="home-outline" />
           ),
         }}
       />
@@ -67,18 +58,29 @@ export default function TabsLayout() {
           title: "Search",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.search} title="Search" />
+            <TabIcon focused={focused} iconName="list-outline" />
           ),
         }}
       />
 
       <Tabs.Screen
-        name="save"
+        name="dashboard"
         options={{
-          title: "Save",
+          title: "Activity",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.save} title="Save" />
+            <TabIcon focused={focused} iconName="pulse-outline" />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="tickets"
+        options={{
+          title: "Tickets",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} iconName="ticket-outline" />
           ),
         }}
       />
@@ -89,7 +91,7 @@ export default function TabsLayout() {
           title: "Profile",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.person} title="Profile" />
+            <TabIcon focused={focused} iconName="person-outline" />
           ),
         }}
       />
